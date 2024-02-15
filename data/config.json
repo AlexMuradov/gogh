@@ -1,0 +1,5 @@
+{
+    "terraformfile": "/Users/alexm/work/gogh/tmp/demo-iaac",
+    "planfile":"tmp/plan.json",
+    "layers":"data/layers.json"
+}
