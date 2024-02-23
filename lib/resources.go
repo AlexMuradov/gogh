@@ -42,13 +42,9 @@ func TF2Json(execDir string, planfile string) error {
 type TerraformPlan struct {
 	PlannedValues struct {
 		RootModule struct {
-			Resources []struct {
-				Type string `json:"type"`
-			} `json:"resources"`
+			Resources    []map[string]interface{} `json:"resources"`
 			ChildModules []struct {
-				Resources []struct {
-					Type string `json:"type"`
-				} `json:"resources"`
+				Resources []map[string]interface{} `json:"resources"`
 			} `json:"child_modules"`
 		} `json:"root_module"`
 	} `json:"planned_values"`

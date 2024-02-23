@@ -15,58 +15,45 @@ type Network struct {
 	Cidr string
 }
 
-func (this *Networks) Add(network Network) error {
-	this.Net = append(this.Net, network)
-	return nil
+func (n *Networks) Add(network Network) {
+	n.Net = append(n.Net, network)
 }
 
+// Populate uses the common logic for populating networks
 func (n *Networks) Populate(plan *TerraformPlan, layersData map[string]interface{}) error {
-
-	network := layersData["network"].([]interface{})
-
-	seen := make(map[string]bool)
-
-	for _, val := range network {
-		seen[val.(string)] = true
-	}
-
-	for _, val := range plan.PlannedValues.RootModule.Resources {
-		if seen[val.Type] {
-			log.Printf("network match found: %s", val.Type)
+	// Define a resource processor specifically for networks
+	networkProcessor := func(resource map[string]interface{}) bool {
+		resourceType, _ := resource["type"].(string)
+		// Check if the resource type is what we're interested in
+		if resourceType == "aws_vpc" {
+			resourceName, _ := resource["name"].(string) // Assuming 'name' is always present
+			resourceCIDR, _ := resource["values"].(map[string]interface{})["cidr_block"].(string)
 			n.Add(Network{
-				Addr: val.Type,
-				Name: "My test network",
-				Cidr: "0.0.0.0/0",
+				Addr: resourceType,
+				Name: resourceName,
+				Cidr: resourceCIDR, // Example CIDR, adjust as necessary
 			})
+			return true
 		}
+		return false
 	}
 
-	for _, childModule := range plan.PlannedValues.RootModule.ChildModules {
-		for _, resource := range childModule.Resources {
-			if seen[resource.Type] {
-				log.Printf("network match found: %s", resource.Type)
-				n.Add(Network{
-					Addr: resource.Type,
-					Name: "My test network",
-					Cidr: "0.0.0.0/0",
-				})
-			}
-		}
+	// Use the common PopulateCommon function with the networkProcessor
+	err := PopulateCommon(plan, layersData, "network", networkProcessor)
+	if err != nil {
+		return fmt.Errorf("failed to populate networks: %w", err)
 	}
 
 	return nil
 }
 
 func NewNetworkLayer(plan *TerraformPlan, layersData map[string]interface{}) error {
-
 	n := &Networks{}
 	err := n.Populate(plan, layersData)
-
 	if err != nil {
-		log.Fatalf("Network layer can't be populated %v", err)
+		log.Fatalf("Network layer can't be populated: %v", err)
 	}
 
 	fmt.Println(n)
-
 	return nil
 }
