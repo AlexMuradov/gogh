@@ -25,17 +25,14 @@ func (n *Networks) Populate(plan *TerraformPlan, layersData map[string]interface
 	networkProcessor := func(resource map[string]interface{}) bool {
 		resourceType, _ := resource["type"].(string)
 		// Check if the resource type is what we're interested in
-		if resourceType == "aws_vpc" {
-			resourceName, _ := resource["name"].(string) // Assuming 'name' is always present
-			resourceCIDR, _ := resource["values"].(map[string]interface{})["cidr_block"].(string)
-			n.Add(Network{
-				Addr: resourceType,
-				Name: resourceName,
-				Cidr: resourceCIDR, // Example CIDR, adjust as necessary
-			})
-			return true
-		}
-		return false
+		resourceName, _ := resource["name"].(string) // Assuming 'name' is always present
+		resourceCIDR, _ := resource["values"].(map[string]interface{})["cidr_block"].(string)
+		n.Add(Network{
+			Addr: resourceType,
+			Name: resourceName,
+			Cidr: resourceCIDR, // Example CIDR, adjust as necessary
+		})
+		return true
 	}
 
 	// Use the common PopulateCommon function with the networkProcessor

@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	//"github.com/ajstarks/svgo"
 	"log"
+	"time"
 
+	//"github.com/ajstarks/svgo"
 	"github.com/architecthub-io/gogh/lib"
-	//"net/http"
 )
 
 func main() {
@@ -25,6 +25,23 @@ func main() {
 \/___________/ \/_________/ \/___________/ \/_/    \/_/        
 `
 	fmt.Println(asciiArt)
+	fmt.Printf("working")
+
+	done := make(chan bool)
+
+	// Start the goroutine that prints dots
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				// Print a dot and sleep for a specified interval
+				fmt.Printf(".")
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}()
 
 	// Loads configuration
 	config, err := lib.NewConfig()
@@ -51,14 +68,17 @@ func main() {
 	// Initializes network layer by using network key and slice values
 	// within that key. It then pairs network items in the that slice
 	// by going through all items in the infrastructure code using hashmaps
-	err = lib.NewNetworkLayer(plan, layers)
-	if err != nil {
-		log.Fatalf("error %v", err)
+
+	layerInitializers := []func(*lib.TerraformPlan, map[string]interface{}) error{ // Replace PlanType and LayersType with actual types
+		lib.NewNetworkLayer,
+		lib.NewSubnetworkLayer,
 	}
 
-	err = lib.NewSubnetworkLayer(plan, layers)
-	if err != nil {
-		log.Fatalf("error %v", err)
+	for _, initializer := range layerInitializers {
+		err := initializer(plan, layers)
+		if err != nil {
+			log.Fatalf("error %v", err)
+		}
 	}
 
 	// 	http.Handle("/circle", http.HandlerFunc(circle))
@@ -82,4 +102,5 @@ func main() {
 	// s.Rect(10, 200, 60, 60, "fill:none;stroke:#E4CCFF;stroke-width:1;rx:12; fill:#FBF7FF")
 	// s.Image(20, 205, 40, 40, ant)
 	// s.End()
+	done <- true
 }

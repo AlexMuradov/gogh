@@ -3,7 +3,8 @@
         "aws_vpc",
         "azurerm_virtual_network",
         "google_compute_network",
-        "aws_spot_instance_request"
+        "aws_spot_instance_request",
+        "aws_ecs_cluster"
     ],
     "region": [
         "check_for_region"
